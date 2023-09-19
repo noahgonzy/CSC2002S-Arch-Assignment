@@ -1,6 +1,6 @@
 .data
     buffer: .space 1024        # Buffer to read lines
-    filename: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
+    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
     readerror: .asciiz "File input error"
     newline: .asciiz "\n"
     line: .space 8
@@ -13,7 +13,7 @@
 main:
     # Open the file for reading
     li $v0, 13               # Syscall code for open file
-    la $a0, filename         # Load the address of the filename
+    la $a0, filenameread         # Load the address of the filename
     li $a1, 0                # Open for reading
     li $a2, 0                # Mode (ignored for reading)
     syscall
@@ -22,6 +22,8 @@ main:
 
     move $t0, $v0            # Store the file descriptor in $t0
     
+    li $t6, 0 #line counter
+    li $t5, 3 #line where rgb starts
     li $s1, 0 #char counter
     li $s0, 10 #newline char
 
@@ -45,14 +47,17 @@ read_loop:
     j read_loop
 
 resetcounter:
+    addi $t6, $t6, 1
     li $s1, 0
+
+    li $t7, 0
+    li $t8, 8
+
+    ble $t6, $t5, resetspace
 
     li $v0, 4
     la $a0, line
     syscall
-
-    li $t7, 0
-    li $t8, 8
 
     j resetspace
 
