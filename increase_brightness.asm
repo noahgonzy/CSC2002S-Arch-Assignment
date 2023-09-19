@@ -1,7 +1,8 @@
 .data
     buffer: .space 1024        # Buffer to read lines
-    filename: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
-    readerror: .asciiz "File input error"
+    filenameread: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
+    filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
+    readerror: .asciiz "File I/O error"
     newline: .asciiz "\n"
     line: .space 8
     linereset: .space 8
@@ -15,12 +16,20 @@ main:
     li $v0, 13               # Syscall code for open file
     la $a0, filenameread         # Load the address of the filename
     li $a1, 0                # Open for reading
-    li $a2, 0                # Mode (ignored for reading)
     syscall
 
     ble $v0, $zero, error
 
     move $t0, $v0            # Store the file descriptor in $t0
+
+    li $v0, 13               # Syscall code for open file
+    la $a0, filenamewrite         # Load the address of the filename
+    li $a1, 'A'                # Open for writing
+    syscall
+
+    ble $v0, $zero, error
+
+    move $s8, $v0
     
     li $t6, 0 #line counter
     li $t5, 3 #line where rgb starts
@@ -70,6 +79,10 @@ resetspace:
 
 done:
     # Close the file
+    li $v0, 16               # Syscall code for close file
+    move $a0, $t0            # File descriptor to close
+    syscall
+
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
