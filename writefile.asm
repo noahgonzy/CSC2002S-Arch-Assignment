@@ -1,6 +1,7 @@
 .data
     buffer: .space 1024        # Buffer to read lines
-    filename: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
+    filename: .asciiz "/home/noahg/Documents/A3/testhouse.ppm"
+    testline: "line1\nline2\nline3"
     readerror: .asciiz "File input error"
     newline: .asciiz "\n"
     line: .space 8
@@ -14,7 +15,7 @@ main:
     # Open the file for reading
     li $v0, 13               # Syscall code for open file
     la $a0, filename         # Load the address of the filename
-    li $a1, 0                # Open for reading
+    li $a1, 1                # Open for reading
     li $a2, 0                # Mode (ignored for reading)
     syscall
 
@@ -25,43 +26,13 @@ main:
     li $s1, 0 #char counter
     li $s0, 10 #newline char
 
-read_loop:
-    # Read a line from the file
-    li $v0, 14               # Syscall code for read from file
-    move $a0, $t0            # File descriptor
-    la $a1, buffer           # Buffer to store the line
-    li $a2, 1                # Maximum number of bytes to read
+
+writeline:
+    move $a0, $t0
+    la $v0, 15
+    la $a1, testline
     syscall
-
-    # Check if EOF (end of file)
-    beq $v0, $zero, done     # If $v0 is 0, we have reached the end of the file
-
-    lb $t1, 0($a1)
-
-    sb $t1, line($s1)
-    addi $s1, $s1, 1
-    beq $t1, $s0, resetcounter
-
-    j read_loop
-
-resetcounter:
-    li $s1, 0
-
-    li $v0, 4
-    la $a0, line
-    syscall
-
-    li $t7, 0
-    li $t8, 8
-
-    j resetspace
-
-resetspace:
-    sb $zero, line($t7)
-    addi $t7, $t7, 1
-    beq $t7, $t8, read_loop
-
-    j resetspace
+    j done
 
 done:
     # Close the file
