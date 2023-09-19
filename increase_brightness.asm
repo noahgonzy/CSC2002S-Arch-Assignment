@@ -21,20 +21,28 @@ main:
     ble $v0, $zero, error
 
     move $t0, $v0            # Store the file descriptor in $t0
-
-    li $v0, 13               # Syscall code for open file
-    la $a0, filenamewrite         # Load the address of the filename
-    li $a1, 'A'                # Open for writing
-    syscall
-
-    ble $v0, $zero, error
-
-    move $s8, $v0
     
     li $t6, 0 #line counter
     li $t5, 3 #line where rgb starts
     li $s1, 0 #char counter
     li $s0, 10 #newline char
+    li $s4, 48 #char to int conversation
+    li $s8, 255 #max rgb value
+    li $t3, 0 #stores initial brightness vals
+    li $t4, 0 #stores new brightness vals
+
+    #reserved variables
+    #s0, 10, stores newline char
+    #s1: char counter to print letter by letter
+    #s4, 48, for string to int conversion
+    #s8, 255, max rgb value
+    #t1: byte storage / number storage (READ LOOP / STRTOINT LOOP)
+    #t3: stores all brightness vals added for current image
+    #t4: stores new brighness vals 
+    #t5: 3, stores where rgb starts
+    #t6: lines counter
+    #t7: byte counter for resetting line (ONLY WHEN RESETTING LINE)
+    #t8: stores the number 8 for resetting line (ONLY WHEN RESETTING LINE)
 
 read_loop:
     # Read a line from the file
@@ -64,9 +72,42 @@ resetcounter:
 
     ble $t6, $t5, resetspace
 
-    li $v0, 4
-    la $a0, line
-    syscall
+    li $s2, 0
+    li $s3, 0
+
+    j linetoint
+
+
+linetoint:
+    lb  $t1, line($s3)
+
+    addi $s3, $s3, 1
+
+    beq $t1, $s0, brighten
+
+    sub $t1, $t1, $s4
+    mul $s2, $s2, $s0
+    add $s2, $s2, $t1
+
+    j linetoint
+
+brighten:
+    addi $t3, $t3, $s2
+
+    addi $s2, $s2, 10
+    bgt $s2, 255, toobright
+
+    j numtonewstr
+
+toobright:
+    li $s2, 255
+
+    j numtonewstr
+
+numtonewstr:
+    addi $t4, $t4, $s2
+
+    #CONTINUE HERE
 
     j resetspace
 
@@ -79,10 +120,6 @@ resetspace:
 
 done:
     # Close the file
-    li $v0, 16               # Syscall code for close file
-    move $a0, $t0            # File descriptor to close
-    syscall
-
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall

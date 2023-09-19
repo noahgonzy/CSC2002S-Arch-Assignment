@@ -19,6 +19,19 @@ main:
 
     move $t0, $v0            # Store the file descriptor in $t0
 
+    li $v0, 16               # Syscall code for close file
+    move $a0, $t0            # File descriptor to close
+    syscall
+
+
+
+    li   $v0, 13       # system call for open file
+    la   $a0, filename     # output file name
+    li   $a1, '1'        # Open for writing (flags are 0: read, W/A: write)
+    syscall  
+
+    move $t0, $v0            # Store the file descriptor in $t0
+
     blt $v0, $zero, error
 
 writeline:
