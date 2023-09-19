@@ -1,6 +1,6 @@
 .data
     buffer: .space 1024        # Buffer to read lines
-    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
+    filename: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
     readerror: .asciiz "File input error"
     newline: .asciiz "\n"
     line: .space 8
