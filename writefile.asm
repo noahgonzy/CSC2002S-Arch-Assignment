@@ -1,6 +1,6 @@
 .data
-    filename:   .asciiz "F:\Dropbox\Dropbox\UCT\CSC2002S\A3\testout.txt"      # filename for output
-    testline: .asciiz "line1\nline2\nline3"
+    filename: .asciiz "/home/noahg/Documents/A3/my_file.txt"      # filename for output
+    testline: .asciiz "line1\nline2\nline3\n"
     readerror: .asciiz "File output error\nError Code: "
     success: .asciiz "File Successfully Created"
     newline: .asciiz "\n"
@@ -26,9 +26,9 @@ writeline:
     move $a0, $t0
     li $v0, 15
     la $a1, testline
-    li $a2, 44
+    li $a2, 18
     syscall
-    j file_created
+    j done
 
 done:
     # Close the file
