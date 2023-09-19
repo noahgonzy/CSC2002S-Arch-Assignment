@@ -3,8 +3,6 @@
     filename: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
     readerror: .asciiz "File input error"
     newline: .asciiz "\n"
-    line: .space 8
-    linereset: .space 8
 
 .text
 .globl main
@@ -21,8 +19,11 @@ main:
     ble $v0, $zero, error
 
     move $t0, $v0            # Store the file descriptor in $t0
+
+    li $t8, 6 #last line to print
+    li $t6, -1 #first line to print (-1)
     
-    li $s1, 0 #char counter
+    li $t7, 0 #line counter
     li $s0, 10 #newline char
 
 read_loop:
@@ -35,33 +36,28 @@ read_loop:
 
     # Check if EOF (end of file)
     beq $v0, $zero, done     # If $v0 is 0, we have reached the end of the file
+    beq $t7, $t8, done
 
     lb $t1, 0($a1)
 
-    sb $t1, line($s1)
-    addi $s1, $s1, 1
-    beq $t1, $s0, resetcounter
+    bgt $t7, $t6, printchar 
+    beq $t1, $s0, addlinecounter     # If it's a newline, we have reached the end of the line
+
+    j read_loop              # Continue reading lines
+
+printchar:
+    # Print the line
+    li $v0, 11               # Syscall code for print character
+    move $a0, $t1            # Load the character to print
+    syscall 
+
+    beq $t1, $s0, addlinecounter     # If it's a newline, we have reached the end of the line
 
     j read_loop
 
-resetcounter:
-    li $s1, 0
-
-    li $v0, 4
-    la $a0, line
-    syscall
-
-    li $t7, 0
-    li $t8, 8
-
-    j resetspace
-
-resetspace:
-    sb $zero, line($t7)
+addlinecounter:
     addi $t7, $t7, 1
-    beq $t7, $t8, read_loop
-
-    j resetspace
+    j read_loop
 
 done:
     # Close the file
