@@ -1,11 +1,11 @@
 .data
     buffer: .space 1024        # Buffer to read lines
+    result_string: .space 8
     filenameread: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
     newline: .asciiz "\n"
     line: .space 8
-    linereset: .space 8
 
 .text
 .globl main
@@ -36,7 +36,6 @@ main:
     #s1: char counter to print letter by letter
     #s4, 48, for string to int conversion
     #s8, 255, max rgb value
-    #t1: byte storage / number storage (READ LOOP / STRTOINT LOOP)
     #t3: stores all brightness vals added for current image
     #t4: stores new brighness vals 
     #t5: 3, stores where rgb starts
@@ -70,7 +69,7 @@ resetcounter:
     li $t7, 0
     li $t8, 8
 
-    ble $t6, $t5, resetspace
+    ble $t6, $t5, resetspaces
 
     li $s2, 0
     li $s3, 0
@@ -105,18 +104,42 @@ toobright:
     j numtonewstr
 
 numtonewstr:
-    addi $t4, $t4, $s2
+    addi $t4, $t4, $s2   
+    li $t2, 0
+    j newnumtostr
 
-    #CONTINUE HERE
+newnumtostr:
+    div $s2, $s0
+    mflo $s2
+    mfhi $t1
 
-    j resetspace
+    addi $t1, $t1, $s4
+    sb $t1, result_string($t2)
 
-resetspace:
+    beq $s2, $zero, printnewnums
+    addi $t2, $t2, 1
+
+    j newnumtostr
+
+printnewnums:
+    li $v0, 4                # Syscall code for print string
+    la $a0, result_string           # Load the address of the buffer
+    syscall
+
+    j resetspaces
+
+
+resetspaces:
     sb $zero, line($t7)
+    sb $zero, result_string($t7)
     addi $t7, $t7, 1
     beq $t7, $t8, read_loop
 
-    j resetspace
+    j resetspaces
+
+
+
+
 
 done:
     # Close the file
