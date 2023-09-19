@@ -1,8 +1,8 @@
 .data
-    filename: .asciiz "/home/noahg/Documents/A3/my_file.txt"      # filename for output
+    filename: .asciiz "/home/noahg/Documents/A3/house_test.ppm"      # filename for output
     testline: .asciiz "line1\nline2\nline3\n"
     readerror: .asciiz "File output error\nError Code: "
-    success: .asciiz "File Successfully Created"
+    success: .asciiz "File Successfully Created and Written to"
     newline: .asciiz "\n"
     line: .space 8
     linereset: .space 8
@@ -14,13 +14,12 @@
 main:
     li   $v0, 13       # system call for open file
     la   $a0, filename     # output file name
-    li   $a1, 1        # Open for writing (flags are 0: read, 1: write)
-    li   $a2, 0        # mode is ignored
+    li   $a1, 'A'        # Open for writing (flags are 0: read, W/A: write)
     syscall            # open a file (file descriptor returned in $v0)
+
     move $t0, $v0            # Store the file descriptor in $t0
 
     blt $v0, $zero, error
-    bnez $v0, file_created
 
 writeline:
     move $a0, $t0
@@ -28,7 +27,7 @@ writeline:
     la $a1, testline
     li $a2, 18
     syscall
-    j done
+    j file_created
 
 done:
     # Close the file
