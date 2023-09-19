@@ -1,6 +1,5 @@
 .data
-    buffer: .space 1024        # Buffer to read lines
-    filename: .asciiz "/home/noahg/Documents/A3/testhouse.txt"
+    filename:   .asciiz "F:\Dropbox\Dropbox\UCT\CSC2002S\A3\testout.txt"      # filename for output
     testline: .asciiz "line1\nline2\nline3"
     readerror: .asciiz "File output error\nError Code: "
     success: .asciiz "File Successfully Created"
@@ -13,18 +12,15 @@
 
 # Open file, read lines, and print them
 main:
-    # Open the file for reading
     li   $v0, 13       # system call for open file
     la   $a0, filename     # output file name
     li   $a1, 1        # Open for writing (flags are 0: read, 1: write)
+    li   $a2, 0        # mode is ignored
     syscall            # open a file (file descriptor returned in $v0)
     move $t0, $v0            # Store the file descriptor in $t0
 
     blt $v0, $zero, error
     bnez $v0, file_created
-    
-    j done
-
 
 writeline:
     move $a0, $t0
@@ -32,7 +28,7 @@ writeline:
     la $a1, testline
     li $a2, 44
     syscall
-    j done
+    j file_created
 
 done:
     # Close the file
