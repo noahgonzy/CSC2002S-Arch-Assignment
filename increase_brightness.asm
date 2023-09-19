@@ -4,6 +4,7 @@
     filenameread: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
+    separator: .asciiz "----------------------\n"
     newline: .asciiz "\n"
     line: .space 8
 
@@ -17,6 +18,7 @@ main:
     la $a0, filenameread         # Load the address of the filename
     li $a1, 0                # Open for reading
     syscall
+    li $a0, 0
 
     ble $v0, $zero, error
 
@@ -91,9 +93,10 @@ linetoint:
     j linetoint
 
 brighten:
-    addi $t3, $t3, $s2
+    add $t3, $t3, $s2
 
     addi $s2, $s2, 10
+
     bgt $s2, 255, toobright
 
     j numtonewstr
@@ -104,24 +107,39 @@ toobright:
     j numtonewstr
 
 numtonewstr:
-    addi $t4, $t4, $s2   
+    add $t4, $t4, $s2   
     li $t2, 0
+    move $s5, $s2
+    j getnumlen
+
+getnumlen:
+    div $s5, $s0
+    mflo $s5
+
+    beq $s5, $zero, assignnl
+    addi $t2, $t2, 1
+    j getnumlen
+
+assignnl:
+    addi $t2, $t2, 1
+    sb $s0, result_string($t2)
     j newnumtostr
 
+
 newnumtostr:
+    addi $t2, $t2, -1
     div $s2, $s0
     mflo $s2
     mfhi $t1
 
-    addi $t1, $t1, $s4
+    add $t1, $t1, $s4
     sb $t1, result_string($t2)
-
-    beq $s2, $zero, printnewnums
-    addi $t2, $t2, 1
+    beq $s2, $zero, printnewnum
 
     j newnumtostr
+    
 
-printnewnums:
+printnewnum:
     li $v0, 4                # Syscall code for print string
     la $a0, result_string           # Load the address of the buffer
     syscall
@@ -136,9 +154,6 @@ resetspaces:
     beq $t7, $t8, read_loop
 
     j resetspaces
-
-
-
 
 
 done:
