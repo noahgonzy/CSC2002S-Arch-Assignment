@@ -1,5 +1,5 @@
 .data
-    buffer: .space 128        # Buffer to read lines
+    buffer: .space 64000        # Buffer to read lines
     filename: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_cr.ppm"
 
 .text
@@ -20,11 +20,12 @@ read_loop:
     li $v0, 14               # Syscall code for read from file
     move $a0, $t0            # File descriptor
     la $a1, buffer           # Buffer to store the line
-    li $a2, 128              # Maximum number of bytes to read
+    li $a2, 64000                  # Maximum number of bytes to read
     syscall
 
     # Check if EOF (end of file)
     beq $v0, $zero, done     # If $v0 is 0, we have reached the end of the file
+    beq $t7, $t8, done
 
     # Print the line
     li $v0, 4                # Syscall code for print string
