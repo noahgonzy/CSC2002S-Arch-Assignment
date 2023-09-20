@@ -3,7 +3,7 @@
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
     filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
-    filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
+    filenamewrite: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
@@ -44,8 +44,6 @@ main:
     #t4: stores new brighness vals 
     #t5: 3, stores where rgb starts
     #t6: lines counter
-    #t7: byte counter for resetting line (ONLY WHEN RESETTING LINE)
-    #t8: stores the number 8 for resetting line (ONLY WHEN RESETTING LINE)
 
 read_loop:
     # Read a line from the file
@@ -56,7 +54,7 @@ read_loop:
     syscall
 
     # Check if EOF (end of file)
-    beq $v0, $zero, done     # If $v0 is 0, we have reached the end of the file
+    beq $v0, $zero, donereading     # If $v0 is 0, we have reached the end of the file
 
     lb $t1, 0($a1)
 
@@ -74,9 +72,6 @@ resetcounter:
     move $s7, $s6 # $s7 = char position to write from
     add $s6, $s6, $t1 # s6 = number of chars total, $t1 = number of chars to write
     sw $t1, numcharstowrite
-
-    li $t7, 0
-    li $t8, 8
 
     li $s2, 0
     li $s3, 0
@@ -135,15 +130,19 @@ getnumlen:
     beq $s5, $zero, assignnl
     j getnumlen
 
+# FIX HERE
 assignnl:
     lw $t1, numcharstowrite
     addi $t1, $t1, -1
 
     blt $t1, $t2, incbytes
+    beq $t1, $t2, dontincbytes
+    j donereading
 
+
+dontincbytes:
     add $t2, $s7, $t2
     sb $s0, writestring($t2)
-
     j newnumtostr
 
 incbytes:
@@ -168,23 +167,58 @@ newnumtostr:
 
 
 resetspaces:
+    li $t7, 0
+    li $t8, 8
+    j rs
+
+rs:
     sb $zero, line($t7)
     addi $t7, $t7, 1
     beq $t7, $t8, read_loop
 
-    j resetspaces
+    j rs
 
 
-done:
+donereading:
     # Close the file
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
 
-    li $v0, 4                # Syscall code for print string
-    la $a0, writestring           # Load the address of the buffer
+    li $v0, 1              # Syscall code for print string
+    move $a0, $t6           # Load the address of the buffer
     syscall
+
+    li $v0, 4                # Syscall code for print string
+    la $a0, separator           # Load the address of the buffer
+    syscall
+
+    li $v0, 1              # Syscall code for print string
+    move $a0, $t4           # Load the address of the buffer
+    syscall
+
+    li $t0, 0
     
+    j writenewfile
+
+writenewfile:
+    li   $v0, 13       # system call for open file
+    la   $a0, filenamewrite     # output file name
+    li   $a1, 'A'        # Open for writing (flags are 0: read, W/A: write)
+    syscall
+
+    move $t0, $v0            # Store the file descriptor in $t0
+
+    move $a0, $t0
+    li $v0, 15
+    la $a1, writestring
+    move $a2, $s1
+    syscall
+
+    li $v0, 16               # Syscall code for close file
+    move $a0, $t0            # File descriptor to close
+    syscall
+
     j exit
 
 error:
