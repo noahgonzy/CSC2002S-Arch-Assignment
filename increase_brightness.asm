@@ -1,13 +1,14 @@
 .data
     buffer: .space 1024        # Buffer to read lines
-    writestring: .space 64000        # Buffer to read lines
+    writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
     filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
-    separator: .asciiz "----------------------\n"
+    separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
     line: .space 8
+    numcharstowrite: .word 0
 
 .text
 .globl main
@@ -30,7 +31,6 @@ main:
     li $s1, 0 #char counter
     li $s0, 10 #newline char
     li $s4, 48 #char to int conversation
-    li $s8, 255 #max rgb value
     li $t3, 0 #stores initial brightness vals
     li $t4, 0 #stores new brightness vals
     li $s6, 0 #char counter (WHOLE PROGRAM)
@@ -68,11 +68,12 @@ read_loop:
 
 resetcounter:
     addi $t6, $t6, 1
-    move $s7, $s1
+    move $t1, $s1
     li $s1, 0
 
-    move $t1, $s6 #$t1 = char position to write from
-    add $s6, $s6, $s7 #s6 = number of chars total, $s7 = number of chars to write
+    move $s7, $s6 # $s7 = char position to write from
+    add $s6, $s6, $t1 # s6 = number of chars total, $t1 = number of chars to write
+    sw $t1, numcharstowrite
 
     li $t7, 0
     li $t8, 8
@@ -86,10 +87,10 @@ resetcounter:
 
 storefirstthree:
     lb $t2, line($s2)
-    sb $t2, writestring($t1)
+    sb $t2, writestring($s7)
 
-    beq $t1, $s6, resetspaces
-    addi $t1, $t1, 1
+    beq $s7, $s6, resetspaces
+    addi $s7, $s7, 1
     addi $s2, $s2, 1
     j storefirstthree
 
@@ -130,15 +131,27 @@ getnumlen:
     div $s5, $s0
     mflo $s5
 
-    beq $s5, $zero, assignnl
     addi $t2, $t2, 1
+    beq $s5, $zero, assignnl
     j getnumlen
 
 assignnl:
-    addi $t2, $t2, 1
-    sb $s0, result_string($t2)
+    lw $t1, numcharstowrite
+    addi $t1, $t1, -1
+
+    blt $t1, $t2, incbytes
+
+    add $t2, $s7, $t2
+    sb $s0, writestring($t2)
+
     j newnumtostr
 
+incbytes:
+    addi $s6, $s6, 1
+    add $t2, $s7, $t2
+    sb $s0, writestring($t2)
+
+    j newnumtostr
 
 newnumtostr:
     addi $t2, $t2, -1
@@ -147,23 +160,15 @@ newnumtostr:
     mfhi $t1
 
     add $t1, $t1, $s4
-    sb $t1, result_string($t2)
-    beq $s2, $zero, printnewnum
+    sb $t1, writestring($t2)
+
+    beq $s2, $zero, resetspaces
 
     j newnumtostr
-    
-
-printnewnum:
-    li $v0, 4                # Syscall code for print string
-    la $a0, result_string           # Load the address of the buffer
-    #syscall
-
-    j resetspaces
 
 
 resetspaces:
     sb $zero, line($t7)
-    sb $zero, result_string($t7)
     addi $t7, $t7, 1
     beq $t7, $t8, read_loop
 
@@ -174,6 +179,10 @@ done:
     # Close the file
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
+    syscall
+
+    li $v0, 4                # Syscall code for print string
+    la $a0, writestring           # Load the address of the buffer
     syscall
     
     j exit
