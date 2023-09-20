@@ -23,7 +23,7 @@ main:
     move $a0, $t0            # File descriptor to close
     syscall
 
-
+    
 
     li   $v0, 13       # system call for open file
     la   $a0, filename     # output file name
