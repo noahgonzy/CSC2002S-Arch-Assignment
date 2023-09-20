@@ -1,7 +1,8 @@
 .data
     buffer: .space 1024        # Buffer to read lines
+    writestring: .space 64000        # Buffer to read lines
     result_string: .space 8
-    filenameread: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
+    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
     separator: .asciiz "----------------------\n"
@@ -32,6 +33,7 @@ main:
     li $s8, 255 #max rgb value
     li $t3, 0 #stores initial brightness vals
     li $t4, 0 #stores new brightness vals
+    li $s6, 0 #char counter (WHOLE PROGRAM)
 
     #reserved variables
     #s0, 10, stores newline char
@@ -66,18 +68,30 @@ read_loop:
 
 resetcounter:
     addi $t6, $t6, 1
+    move $s7, $s1
     li $s1, 0
+
+    move $t1, $s6 #$t1 = char position to write from
+    add $s6, $s6, $s7 #s6 = number of chars total, $s7 = number of chars to write
 
     li $t7, 0
     li $t8, 8
 
-    ble $t6, $t5, resetspaces
-
     li $s2, 0
     li $s3, 0
 
+    ble $t6, $t5, storefirstthree
+
     j linetoint
 
+storefirstthree:
+    lb $t2, line($s2)
+    sb $t2, writestring($t1)
+
+    beq $t1, $s6, resetspaces
+    addi $t1, $t1, 1
+    addi $s2, $s2, 1
+    j storefirstthree
 
 linetoint:
     lb  $t1, line($s3)
@@ -142,7 +156,7 @@ newnumtostr:
 printnewnum:
     li $v0, 4                # Syscall code for print string
     la $a0, result_string           # Load the address of the buffer
-    syscall
+    #syscall
 
     j resetspaces
 
