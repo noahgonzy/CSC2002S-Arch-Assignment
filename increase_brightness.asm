@@ -2,8 +2,8 @@
     buffer: .space 1024        # Buffer to read lines
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
-    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_64_in_ascii_lf.ppm"
-    filenamewrite: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/house_test.ppm"
+    filenameread: .asciiz "/home/noahg/Documents/A3/house_64_in_ascii_lf.ppm"
+    filenamewrite: .asciiz "/home/noahg/Documents/A3/house_test.ppm"
     readerror: .asciiz "File I/O error"
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
@@ -15,6 +15,17 @@
 
 # Open file, read lines, and print them
 main:
+    li   $v0, 13       # system call for open file
+    la   $a0, filenamewrite     # output file name
+    li   $a1, 'W'        # Open for writing (flags are 0: read, W/A: write)
+    syscall
+
+    move $t0, $v0 
+
+    li $v0, 16               # Syscall code for close file
+    move $a0, $t0            # File descriptor to close
+    syscall
+
     # Open the file for reading
     li $v0, 13               # Syscall code for open file
     la $a0, filenameread         # Load the address of the filename
@@ -199,22 +210,30 @@ donereading:
 
     li $t0, 0
     
-    j writenewfile
+    j createnewfile
 
-writenewfile:
+createnewfile:
     li   $v0, 13       # system call for open file
     la   $a0, filenamewrite     # output file name
-    li   $a1, 'A'        # Open for writing (flags are 0: read, W/A: write)
+    li   $a1, 0x41        # Open for writing (flags are 0: read, W/A: write)
     syscall
 
     move $t0, $v0            # Store the file descriptor in $t0
 
-    move $a0, $t0
+    blt $v0, $zero, error
+
+    j writing
+
+writing:
     li $v0, 15
+    move $a0, $t0
     la $a1, writestring
-    move $a2, $s1
+    move $a2, $s6
     syscall
 
+    j donewriting
+
+donewriting:
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
