@@ -2,7 +2,7 @@
     buffer: .space 1024        # Buffer to read lines
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
-    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/jet_64_in_ascii_lf.ppm"
+    filenameread: .asciiz "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/jet_test.ppm"
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
@@ -91,20 +91,19 @@ processing:
     li $s2, 0
     li $s3, 0
 
-    beq $t6, 2, storenewdescription
     ble $t6, $t5, storefirstthree
 
     j linetoint
 
-#FIX THIS
 storenewdescription:
-    lb $t2, line($s2)
+    addi $s7, $s7, -2
+    lb $t2, writestring($s7)
+    addi $s7, $s7, -1
     sb $t2, writestring($s7)
-
-    beq $s7, $s6, resetspaces
+    li $t2, '2'
     addi $s7, $s7, 1
-    addi $s2, $s2, 1
-    j storenewdescription
+    sb $t2, writestring($s7)
+    j rs
 
 storefirstthree:
     lb $t2, line($s2)
@@ -195,6 +194,7 @@ newnumtostr:
 resetspaces:
     li $t7, 0
     li $t8, 8
+    beq $t6, 2, storenewdescription
     j rs
 
 rs:
