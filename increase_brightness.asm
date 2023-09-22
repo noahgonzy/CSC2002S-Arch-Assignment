@@ -2,7 +2,7 @@
     buffer: .space 1024        # Buffer to read lines
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
-    filenameread: .asciiz "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
+    filenameread: .asciiz "/Users/noahgonsenhauser/Library/CloudStorage/Dropbox/UCT/CSC2002S/A3/jet_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/jet_test.ppm"
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
@@ -12,6 +12,7 @@
     newline: .asciiz "\n"
     line: .space 8
     numcharstowrite: .word 0
+    conversionword: .word 0
 
 .text
 .globl main
@@ -198,49 +199,36 @@ donereading:
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
-
-    li $t0, 255
-    li $t1, 12288
-    div $t3, $t1
-    mflo $t2
-    mul $t2, $t2, 1000000
-    div $t2, $t0
-    mflo $t2
+    li.s $f0, 255.0
+    li.s $f1, 12288.0
+    mtc1 $t3, $f2
+    cvt.s.w $f2, $f2
+    div.s $f2, $f2, $f1
+    div.s $f12, $f2, $f0
 
     li $v0, 4              # Syscall code for print float
     la $a0, avecurrent           # Load the address of the buffer
     syscall
 
-    li $v0, 4              # Syscall code for print float
-    la $a0, predec           # Load the address of the buffer
-    syscall
-
-    li $v0, 1              # Syscall code for print float
-    move $a0, $t2           # Load the address of the buffer
+    li $v0, 2              # Syscall code for print float
     syscall
 
     li $v0, 4              # Syscall code for print float
     la $a0, separator           # Load the address of the buffer
     syscall
 
-    li $t0, 255
-    li $t1, 12288
-    div $t4, $t1
-    mflo $t2
-    mul $t2, $t2, 1000000
-    div $t2, $t0
-    mflo $t2
+    li.s $f0, 255.0
+    li.s $f1, 12288.0
+    mtc1 $t4, $f2
+    cvt.s.w $f2, $f2
+    div.s $f2, $f2, $f1
+    div.s $f12, $f2, $f0
 
     li $v0, 4              # Syscall code for print float
     la $a0, avenew           # Load the address of the buffer
     syscall
 
-    li $v0, 4              # Syscall code for print float
-    la $a0, predec           # Load the address of the buffer
-    syscall
-
-    li $v0, 1              # Syscall code for print float
-    move $a0, $t2           # Load the address of the buffer
+    li $v0, 2              # Syscall code for print float
     syscall
 
     li $t0, 0
