@@ -2,17 +2,21 @@
     buffer: .space 1024        # Buffer to read lines
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
-    filenameread: .asciiz "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
-    filenamewrite: .asciiz "/home/noahg/Documents/A3/jet_test.ppm"
+    line: .space 8
+    #fnr: .space 1024
+    
+
+    filenameread: .asciiz "/home/noahg/Documents/A3/tree_64_in_ascii_lf.ppm"
+    filenamewrite: .asciiz "/home/noahg/Documents/A3/tree_test.ppm"
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
-    predec: .asciiz "0."
-    readerror: .asciiz "File I/O error"
+    #readfileprompt: .asciiz "please enter the directory of the file you want to brighten,\nPlease include .ppm or .txt (i.e: /home/(user)/Desktop/jet_64_in_ascii_lf.ppm):\n"
+    #writefileprompt: .asciiz "please enter the directory of where you want the file to go along with the name of the file,\nPlease include .ppm or .txt (i.e: /home/(user)/Desktop/jet_test.ppm):\n"
+    readerror: .asciiz "File I/O error\nError Code:\n"
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
-    line: .space 8
+    
     numcharstowrite: .word 0
-    conversionword: .word 0
 
 .text
 .globl main
@@ -275,8 +279,13 @@ donewriting:
     j exit
 
 error:
+    move $t8, $v0
     li $v0, 4                # Syscall code for print string
     la $a0, readerror           # Load the address of the buffer
+    syscall
+
+    li $v0, 1                # Syscall code for print string
+    move $a0, $t8           # Load the address of the buffer
     syscall
 
     j exit
