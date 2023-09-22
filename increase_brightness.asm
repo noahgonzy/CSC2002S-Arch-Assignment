@@ -75,11 +75,11 @@ read_loop:
 
     sb $t1, line($s1)
     addi $s1, $s1, 1
-    beq $t1, $s0, resetcounter
+    beq $t1, $s0, processing
 
     j read_loop
 
-resetcounter:
+processing:
     addi $t6, $t6, 1
     move $t1, $s1
     li $s1, 0
