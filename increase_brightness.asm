@@ -91,9 +91,20 @@ processing:
     li $s2, 0
     li $s3, 0
 
+    beq $t6, 2, storenewdescription
     ble $t6, $t5, storefirstthree
 
     j linetoint
+
+#FIX THIS
+storenewdescription:
+    lb $t2, line($s2)
+    sb $t2, writestring($s7)
+
+    beq $s7, $s6, resetspaces
+    addi $s7, $s7, 1
+    addi $s2, $s2, 1
+    j storenewdescription
 
 storefirstthree:
     lb $t2, line($s2)
