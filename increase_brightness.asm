@@ -199,36 +199,36 @@ donereading:
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
-    li.s $f0, 255.0
-    li.s $f1, 12288.0
-    mtc1 $t3, $f2
-    cvt.s.w $f2, $f2
-    div.s $f2, $f2, $f1
-    div.s $f12, $f2, $f0
+
+    li.d $f0, 255.0
+    li.d $f2, 12288.0
+    mtc1 $t3, $f4
+    cvt.d.w $f4, $f4
+    div.d $f6, $f4, $f2
+    div.d $f12, $f6, $f0
 
     li $v0, 4              # Syscall code for print float
     la $a0, avecurrent           # Load the address of the buffer
     syscall
 
-    li $v0, 2              # Syscall code for print float
+    li $v0, 3              # Syscall code for print double
     syscall
 
     li $v0, 4              # Syscall code for print float
     la $a0, separator           # Load the address of the buffer
     syscall
 
-    li.s $f0, 255.0
-    li.s $f1, 12288.0
-    mtc1 $t4, $f2
-    cvt.s.w $f2, $f2
-    div.s $f2, $f2, $f1
-    div.s $f12, $f2, $f0
+    
+    mtc1 $t4, $f4
+    cvt.d.w $f4, $f4
+    div.d $f6, $f4, $f2
+    div.d $f12, $f6, $f0
 
     li $v0, 4              # Syscall code for print float
     la $a0, avenew           # Load the address of the buffer
     syscall
 
-    li $v0, 2              # Syscall code for print float
+    li $v0, 3              # Syscall code for print float
     syscall
 
     li $t0, 0
