@@ -204,6 +204,7 @@ getnumlen:
     beq $s5, $zero, assignnl #jumps to assign new length function
     j getnumlen
 
+#DOES THIS WHOLE PROCESS NEEEED TO BE IN REVERSE
 assignnl:
     addi $t2, $t2, 1 #increment counter by 1 for storing newline char
     move $t4, $t3 #store countdown value into $t4
@@ -213,17 +214,17 @@ assignnl:
     j newnumtostr
 
 newnumtostr:
-    addi $t2, $t2, -1
-    beq $t2, $t4, resetspaces
+    addi $t2, $t2, -1 #loop down
+    beq $t2, $t4, resetspaces #if at the end of the looping down, reset the spaces
     
-    div $s2, $s0
-    mflo $s2
-    mfhi $t1
+    div $s2, $s0 #get the char to bet put in by dividing by 10
+    mflo $s2 #store the number in $s2
+    mfhi $t1 #store the number to be added as a string in $t1
 
-    add $t1, $t1, $s4
-    sb $t1, writestring($t2)
+    add $t1, $t1, $s4 #add 48 to get the string value
+    sb $t1, writestring($t2) #store that char value in the writestring
 
-    j newnumtostr
+    j newnumtostr #loop back down and repeat till all chars from the number are added to the writestring
 
 
 resetspaces:
