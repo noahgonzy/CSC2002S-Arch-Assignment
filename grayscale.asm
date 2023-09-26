@@ -4,8 +4,8 @@
     result_string: .space 8
     line: .space 8
     
-    filenameread: .asciiz "/home/noahg/Documents/A3/tree_64_in_ascii_lf.ppm"
-    filenamewrite: .asciiz "/home/noahg/Documents/A3/tree_test.ppm"
+    filenameread: .asciiz "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
+    filenamewrite: .asciiz "/home/noahg/Documents/A3/jet_greyscale.ppm"
     
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
@@ -19,9 +19,8 @@
 .text
 .globl main
 
-# Open file, read lines, and print them
 main:
-    # FIGURE OUT WRITING SYSTEM, WHICH CALL IS NECESSARY!!!!!!!
+    #this call creates the file for later writing
     li   $v0, 13       # system call for open file
     la   $a0, filenamewrite     # output file name
     li   $a1, 'W'        # Open for writing to create file
@@ -30,7 +29,7 @@ main:
     move $t0, $v0   #store file descriptor
 
     #show error if there's an error creating the file
-    ble $v0, $zero, erro
+    ble $v0, $zero, error
 
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
@@ -54,6 +53,7 @@ main:
     li $s6, 0 #char counter (WHOLE PROGRAM)
 
     li $t5, 0 #counter for knowing when to divide by 3 for greyscale 
+    li $t8, 8 #number stored for resetting space loop
     li $s8, 0 #number to divide by 3 to calculate greyscale value
 
     #reserved variables
@@ -77,41 +77,21 @@ read_loop:
 
     lb $t1, 0($a1) #get the value of the byte being read from the buffer 
 
-    #
-    # can lb and sb line be shortened
-    #
-
     sb $t1, line($s1) #add this byte to the end of the line
     addi $s1, $s1, 1 #add 1 to the value of the loop to know which value to get
     beq $t1, $s0, processing #if a newline character is found, start processing that line
 
     j read_loop #run this loop again to add onto the line string
 
-processing:
-    addi $t6, $t6, 1 #add 1 to the line counter
-    move $t1, $s1 #store the new value of the length of the line into $t1
-    li $s1, 0 
-
-    move $s7, $s6 # $s7 = char position to write from
-    add $s6, $s6, $t1 # s6 = number of chars total, $t1 = number of chars to write
-    sw $t1, numcharstowrite
-
-    li $s2, 0
-    li $s3, 0
-
-    ble $t6, 4, storefirstfour
-
-    j linetoint
-
 #CHECK IF THIS VERSION IS VIABLE BEFORE COMMENTING
-processingalt:
+processing:
     addi $t6, $t6, 1 #add 1 to the line counter
     
     move $s7, $s6 # $s7 = char position to write from
     add $s6, $s6, $s1 # s6 = number of chars total, $t1 = number of chars to write
     sw $s1, numcharstowrite
 
-    li $s1, 0 
+    li $s1, 0
     li $s2, 0
     li $s3, 0
 
@@ -174,10 +154,8 @@ addforgrey:
     addi $t5, $t5, 1 #add 1 to the counter to check when it's time to calculate the average of the pixels
     add $s8, $s8, $s2 #add the new number to $s8 
     beq $t5, 3, converttogrey 
-    #
-    # should be j resetspaces???
-    #
-    j read_loop #jumps back to the read loop to calculate the new numbers (wrong i think)
+
+    j resetspaces #jumps back to the read loop to calculate the new numbers (wrong i think)
 
 #gets the average pixel value
 converttogrey:
@@ -204,7 +182,6 @@ getnumlen:
     beq $s5, $zero, assignnl #jumps to assign new length function
     j getnumlen
 
-#DOES THIS WHOLE PROCESS NEEEED TO BE IN REVERSE
 assignnl:
     addi $t2, $t2, 1 #increment counter by 1 for storing newline char
     move $t4, $t3 #store countdown value into $t4
@@ -226,15 +203,7 @@ newnumtostr:
 
     j newnumtostr #loop back down and repeat till all chars from the number are added to the writestring
 
-
-resetspaces:
-    li $t7, 0
-    li $t8, 8
-    beq $t6, 1, P3toP2
-    beq $t6, 2, storenewdescription
-    beq $t6, 4, setstart
-    j rs
-
+#this resets the values stored in the 'line' variable to 0
 rs:
     sb $zero, line($t7)
     addi $t7, $t7, 1
@@ -242,16 +211,25 @@ rs:
 
     j rs
 
+resetspaces:
+    li $t7, 0 #reset incrementor to reset all values of line variable
+    beq $t6, 1, P3toP2 #change P3 to P2 so that the ppm file knows this is greyscale, but only do it if were on the first line
+    beq $t6, 2, storenewdescription #update the file description so that one can see it is a changed image
+    beq $t6, 4, setstart #set the position of where to start adding onto the writing string once all decription lines have been written
+    j rs #start resetting the line variable
+
+#close the text file being read from
 donereading:
     # Close the file
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
     syscall
     
-    j createnewfile
+    j openforwriting
 
-createnewfile:
-    li   $v0, 13       # system call for closing file
+#open the file being written to
+openforwriting:
+    li   $v0, 13       # system call for opening file
     la   $a0, filenamewrite     # output file name
     li   $a1, 0x41        # Open for writing to file
     syscall
@@ -260,20 +238,16 @@ createnewfile:
 
     blt $v0, $zero, error #show error if there's an error writing to file
 
-    li $v0, 4               # Syscall code printing string
-    la $a0, filesuccess            # show that writing new information to file was a success
-    syscall
-
     j writing
 
 writing:
-    li $v0, 15 
-    move $a0, $t0
-    la $a1, writestring
-    move $a2, $s6
-    syscall
+    li $v0, 15 #load writing command
+    move $a0, $t0 #load file to be written to into descriptor
+    la $a1, writestring #load string to be written into a1
+    move $a2, $t3 #load length of string to be written into a2
+    syscall #write string to file
 
-    j donewriting
+    j donewriting 
 
 donewriting:
     li $v0, 16               # Syscall code for close file
@@ -281,10 +255,15 @@ donewriting:
     syscall
 
     li $t1, 0
-    j tempprint
 
-    j exit
+    li $v0, 4               # Syscall code printing string
+    la $a0, filesuccess            # show that writing new information to file was be a success
+    syscall
+    #j tempprint #this prints all lines in writelines vairable to console for debugging
 
+    j exit 
+
+#print all lines for debugging
 tempprint:
     la $t0, writestring
     li $v0, 4
@@ -293,14 +272,15 @@ tempprint:
 
     j exit
 
+#show error message if there's a problem
 error:
     move $t8, $v0
     li $v0, 4                # Syscall code for print string
-    la $a0, readerror           # Load the address of the buffer
+    la $a0, readerror           # Load error message
     syscall
 
     li $v0, 1                # Syscall code for print string
-    move $a0, $t8           # Load the address of the buffer
+    move $a0, $t8           # load the error code
     syscall
 
     j exit

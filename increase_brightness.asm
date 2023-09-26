@@ -4,12 +4,13 @@
     result_string: .space 8
     line: .space 8
 
-    filenameread: .asciiz "/home/noahg/Documents/A3/tree_64_in_ascii_lf.ppm"
-    filenamewrite: .asciiz "/home/noahg/Documents/A3/tree_test.ppm"
+    filenameread: .asciiz "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
+    filenamewrite: .asciiz "/home/noahg/Documents/A3/jet_brighter.ppm"
     
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
     readerror: .asciiz "File I/O error\nError Code:\n"
+    #fs
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
     
@@ -263,6 +264,7 @@ writing:
     li $v0, 15
     move $a0, $t0
     la $a1, writestring
+    addi $s6, $s6, -1
     move $a2, $s6
     syscall
 
