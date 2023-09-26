@@ -3,15 +3,12 @@
     writestring: .space 100000        # Buffer to read lines
     result_string: .space 8
     line: .space 8
-    #fnr: .space 1024
-    
 
     filenameread: .asciiz "/home/noahg/Documents/A3/tree_64_in_ascii_lf.ppm"
     filenamewrite: .asciiz "/home/noahg/Documents/A3/tree_test.ppm"
+    
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
-    #readfileprompt: .asciiz "please enter the directory of the file you want to brighten,\nPlease include .ppm or .txt (i.e: /home/(user)/Desktop/jet_64_in_ascii_lf.ppm):\n"
-    #writefileprompt: .asciiz "please enter the directory of where you want the file to go along with the name of the file,\nPlease include .ppm or .txt (i.e: /home/(user)/Desktop/jet_test.ppm):\n"
     readerror: .asciiz "File I/O error\nError Code:\n"
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
