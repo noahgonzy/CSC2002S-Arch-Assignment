@@ -26,7 +26,10 @@ main:
     li   $a1, 'W'        # Open for writing (flags are 0: read, W/A: write)
     syscall
 
-    move $t0, $v0 
+    #show error if there's an error creating the file
+    ble $v0, $zero, error
+
+    move $t0, $v0 #store file descriptor
 
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
@@ -37,20 +40,19 @@ main:
     la $a0, filenameread         # Load the address of the filename
     li $a1, 0                # Open for reading
     syscall
-    li $a0, 0
 
+    #show error if there's an error reading
     ble $v0, $zero, error
 
     move $t0, $v0            # Store the file descriptor in $t0
     
     li $t6, 0 #line counter
-    li $t5, 4 #line where rgb starts
     li $s1, 0 #char counter
-    li $s0, 10 #newline char
+    li $s0, 10 #newline char, and value for int to string conversion
     li $s4, 48 #char to int conversation
-    li $t3, 0 #stores initial brightness vals
-    li $t4, 0 #stores new brightness vals
-    li $s6, 0 #char counter (WHOLE PROGRAM)
+    li $t3, 0 #stores initial brightness vals for average
+    li $t4, 0 #stores new brightness vals for average
+    li $s6, 0 #char counter for whole program (for writing string)
 
     #reserved variables
     #s0, 10, stores newline char
@@ -58,8 +60,6 @@ main:
     #s4, 48, for string to int conversion
     #s8, 255, max rgb value
     #t3: stores all brightness vals added for current image
-    #t4: stores new brighness vals 
-    #t5: 3, stores where rgb starts
     #t6: lines counter
 
 read_loop:
@@ -73,91 +73,94 @@ read_loop:
     # Check if EOF (end of file)
     beq $v0, $zero, donereading     # If $v0 is 0, we have reached the end of the file
 
-    lb $t1, 0($a1)
+    lb $t1, 0($a1) #get the value of the byte being read from the buffer 
 
-    sb $t1, line($s1)
-    addi $s1, $s1, 1
-    beq $t1, $s0, processing
+    sb $t1, line($s1) #add this byte to the end of the line
+    addi $s1, $s1, 1 #add 1 to the value of the loop to know which value to get
+    beq $t1, $s0, processing #if a newline character is found, start processing that line
 
-    j read_loop
+    j read_loop #run this loop again to add onto the line string
 
 processing:
-    addi $t6, $t6, 1
-    move $t1, $s1
-    li $s1, 0
-
+    addi $t6, $t6, 1 #add 1 to the line counter
+    
     move $s7, $s6 # $s7 = char position to write from
-    add $s6, $s6, $t1 # s6 = number of chars total, $t1 = number of chars to write
-    sw $t1, numcharstowrite
+    add $s6, $s6, $s1 # s6 = number of chars total, $t1 = number of chars to write
+    sw $s1, numcharstowrite
 
+    li $s1, 0
     li $s2, 0
     li $s3, 0
 
-    ble $t6, $t5, storefirstthree
+    ble $t6, 4, storefirstfour
 
     j linetoint
 
 storenewdescription:
-    addi $s7, $s7, -2
-    lb $t2, writestring($s7)
-    addi $s7, $s7, -1
-    sb $t2, writestring($s7)
-    li $t2, '2'
-    addi $s7, $s7, 1
-    sb $t2, writestring($s7)
-    j rs
+    addi $s7, $s7, -2 #go back 2 bytes and get the last char of the line
+    lb $t1, writestring($s7) 
 
-storefirstthree:
+    li $t2, '2'
+    sb $t2, writestring($s7) #store a number 2 in that place
+
+    addi $s7, $s7, -1 #go back 1 more byte
+    sb $t1, writestring($s7) #set that byte to the same byte as the one that the char at the end initially was
+    #ie: hse become he2, jet become jt2, or tre becomes te2
+    
+    j rs #jump to resetting the 'space' variables
+
+storefirstfour:
     lb $t2, line($s2)
     sb $t2, writestring($s7)
 
-    beq $s7, $s6, resetspaces
+    beq $s7, $s6, resetspaces #if all chars have been written, reset the 'space' variables
     addi $s7, $s7, 1
     addi $s2, $s2, 1
-    j storefirstthree
+    j storefirstfour
 
 linetoint:
-    lb  $t1, line($s3)
+    lb  $t1, line($s3) #get the variable of the char
 
-    addi $s3, $s3, 1
+    addi $s3, $s3, 1 #add 1 to the loop for the next char
 
-    beq $t1, $s0, brighten
+    beq $t1, $s0, brighten #if at end of line, jump to the next step, adding 10 to the value
 
-    sub $t1, $t1, $s4
-    mul $s2, $s2, $s0
-    add $s2, $s2, $t1
+    sub $t1, $t1, $s4 #get the int value by subbing the char value of '0', which equals 48
+    mul $s2, $s2, $s0 #timsing $s2 by 10
+    add $s2, $s2, $t1 #adding the value of the integer to the end of $s2
 
-    j linetoint
+    j linetoint #restarting the loop
 
 brighten:
-    add $t3, $t3, $s2
+    add $t3, $t3, $s2 #add value extracted to total for average calculation
+    
+    addi $s2, $s2, 10 #add 10 to that value
 
-    addi $s2, $s2, 10
+    bgt $s2, 255, toobright #if the value exceeds 255, set it to only 255
 
-    bgt $s2, 255, toobright
-
-    j numtonewstr
+    j numtonewstr #convert the new number back to a string
 
 toobright:
-    li $s2, 255
+    li $s2, 255 #if the value exceeds 255, set it to only 255
 
-    j numtonewstr
+    j numtonewstr #convert the new number back to a string
 
-numtonewstr:
-    add $t4, $t4, $s2   
-    li $t2, 0
-    move $s5, $s2
+#setting up variables to get the length of the new number
+numtonewstr:  
+    add $t4, $t4, $s2  #add new value extracted to total for average calculation
+    li $t2, 0 #set incrementer to 0
+    move $s5, $s2 #store number in $s5 for calculating down in a loop without losing $s2
     j getnumlen
 
+#getting length of new number (brightened number)
 getnumlen:
-    div $s5, $s0
+    div $s5, $s0 #dividing by 10 till the value of the division is 0
     mflo $s5
 
-    addi $t2, $t2, 1
-    beq $s5, $zero, assignnl
+    addi $t2, $t2, 1 #new length stored in $t2
+    beq $s5, $zero, assignnl #jumps to assign new length function
     j getnumlen
 
-# FIX HERE
 assignnl:
     lw $t1, numcharstowrite
     addi $t1, $t1, -1

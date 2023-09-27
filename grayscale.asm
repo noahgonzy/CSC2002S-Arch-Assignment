@@ -83,7 +83,6 @@ read_loop:
 
     j read_loop #run this loop again to add onto the line string
 
-#CHECK IF THIS VERSION IS VIABLE BEFORE COMMENTING
 processing:
     addi $t6, $t6, 1 #add 1 to the line counter
     
@@ -142,8 +141,6 @@ linetoint:
     beq $t1, $s0, addforgrey #if at end of line, jump to the next step, adding up to calculate the average
 
     sub $t1, $t1, $s4 #get the int value by subbing the char value of '0', which equals 48
-    #ALT VERSION
-    #sub $t1, $t1, '0'
     mul $s2, $s2, $s0 #timsing $s2 by 10
     add $s2, $s2, $t1 #adding the value of the integer to the end of $s2
 
