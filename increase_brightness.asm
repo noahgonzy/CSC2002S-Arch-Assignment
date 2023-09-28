@@ -47,6 +47,7 @@ main:
     move $t0, $v0            # Store the file descriptor in $t0
     
     li $t6, 0 #line counter
+    li $t8, 8 #loop counter for space resetting
     li $s1, 0 #char counter
     li $s0, 10 #newline char, and value for int to string conversion
     li $s4, 48 #char to int conversation
@@ -58,7 +59,6 @@ main:
     #s0, 10, stores newline char
     #s1: char counter to print letter by letter
     #s4, 48, for string to int conversion
-    #s8, 255, max rgb value
     #t3: stores all brightness vals added for current image
     #t6: lines counter
 
@@ -162,50 +162,49 @@ getnumlen:
     j getnumlen
 
 assignnl:
-    lw $t1, numcharstowrite
+    lw $t1, numcharstowrite #get the number of chars that needed to be manipulated
     addi $t1, $t1, -1
 
-    blt $t1, $t2, incbytes
-    beq $t1, $t2, dontincbytes
-    j donereading
-
+    blt $t1, $t2, incbytes #if the numbers are different, increment the byte counter by 1 to write the correct amount
+    beq $t1, $t2, dontincbytes #if the numbers are the same, just start writing in the correct place
+    j donereading #skip to end if neither are true as there must be an issue
 
 dontincbytes:
-    add $t2, $s7, $t2
-    sb $s0, writestring($t2)
-    j newnumtostr
+    add $t2, $s7, $t2 #set $t2 to the number of bytes to start writing from
+    sb $s0, writestring($t2) #set newline char at the end
+
+    j newnumtostr #set newline char at the end
 
 incbytes:
-    addi $s6, $s6, 1
-    add $t2, $s7, $t2
-    sb $s0, writestring($t2)
+    addi $s6, $s6, 1 #increment char counter to allign number of bytes to be written
+    add $t2, $s7, $t2 #set $t2 to the number of bytes to start writing from
+    sb $s0, writestring($t2) #set newline char at the end
 
-    j newnumtostr
+    j newnumtostr #set newline char at the end
 
 newnumtostr:
-    addi $t2, $t2, -1
-    div $s2, $s0
-    mflo $s2
+    addi $t2, $t2, -1 #decrement $t2
+    div $s2, $s0 #divide our new number by 10
+    mflo $s2 
     mfhi $t1
 
-    add $t1, $t1, $s4
-    sb $t1, writestring($t2)
+    add $t1, $t1, $s4 #add new number to 48 to get the char value
+    sb $t1, writestring($t2) #store char value in the correct place in the writestring
 
-    beq $s2, $zero, resetspaces
+    beq $s2, $zero, resetspaces #if the resulting number after dividing by 10 is 0, then reset the space variables
 
-    j newnumtostr
+    j newnumtostr #loop back
 
 
 resetspaces:
-    li $t7, 0
-    li $t8, 8
-    beq $t6, 2, storenewdescription
-    j rs
+    li $t7, 0 #reset space loop counter
+    beq $t6, 2, storenewdescription #if on line 2, set the new description to be '2nd' version
+    j rs #jump to reset loop
 
 rs:
-    sb $zero, line($t7)
+    sb $zero, line($t7) #set the value of each char in 'line' to 0
     addi $t7, $t7, 1
-    beq $t7, $t8, read_loop
+    beq $t7, $t8, read_loop #if looped through all values, jump back to the reading loop
 
     j rs
 
