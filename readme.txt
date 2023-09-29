@@ -1,5 +1,19 @@
-ONLY USE LF FILES
+Greyscale and Increase Brightness of .ppm files
+By: Noah Gonsenhauser, GNSNOA001
 
-ONLY WORKS WITH files less than or equal to around 100kb in size
+Usage:
+Open the .asm which you want to use
 
-Only works on 64x64 files
+direct the 'filenameread' variable to the file which you want to either brighten or greyscale
+eg: "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
+
+nb. The file must be 64 x 64 pixels, have a file size of less than 100kb, and be 'LF' terminated
+
+direct the 'filenamewrite' variable to the directory which you want your new file to be created along with the file name of the new file
+eg: "/home/$(USER)/Documents/jet_greyscale.ppm"
+
+Run the .asm file you have chosen using QTspim
+
+If you have used the Greyscale file, you will be shown that either the file was sucessfully created or that there was some file I/O error along with an error code
+
+If you have used the Increase Brightness file, you will either be shown the initial average brightness and then new average brightness, or an I/O error along with an error code
