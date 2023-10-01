@@ -97,12 +97,12 @@ processing:
 
     j linetoint #convert line to be processed to an int
 
-#change description from '# tre' to '# te2', or '# jet' to '# jt2'
+#change description from '# tre' to '# teb', or '# jet' to '# jtb' as in 'brighter'
 storenewdescription:
     addi $s7, $s7, -2 #go back 2 bytes and get the last char of the line
     lb $t1, writestring($s7) 
 
-    li $t2, '2'
+    li $t2, 'b'
     sb $t2, writestring($s7) #store a number 2 in that place
 
     addi $s7, $s7, -1 #go back 1 more byte
