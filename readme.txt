@@ -19,3 +19,13 @@ Run the .asm file you have chosen using QTspim
 If you have used the Greyscale file, you will be shown that either the file was sucessfully created or that there was some file I/O error along with an error code
 
 If you have used the Increase Brightness file, you will either be shown the initial average brightness and then new average brightness, or an I/O error along with an error code
+
+How it works:
+
+Essentially, the file to be manipulated is read char by char and processed line by line.
+Once a whole line is read, it is either directly written to an output string or processed.
+if it is a number to be processed (and not a description which is only ever minorly altered) then it is converted to an integer for processing
+if using the greyscale function, it adds all the numbers together for a pixel and averages them, if using the increase_brightness function, it just adds 10 to the value for a max of 255.
+each number is then written onto the end of the writestring.
+once the end of the file is reached, the writestring is written to the newly created file.
+if there is a reading or writing error, an error message is displayed.

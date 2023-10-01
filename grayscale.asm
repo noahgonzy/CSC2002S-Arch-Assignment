@@ -264,8 +264,6 @@ donewriting:
     move $a0, $t0            # File descriptor to close
     syscall
 
-    li $t1, 0
-
     li $v0, 4               # Syscall code printing string
     la $a0, filesuccess            # show that writing new information to file was be a success
     syscall
