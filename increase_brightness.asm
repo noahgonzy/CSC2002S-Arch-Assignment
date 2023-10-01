@@ -10,7 +10,6 @@
     avecurrent: .asciiz "Average pixel value of the original image:\n"
     avenew: .asciiz "Average pixel value of new image:\n"
     readerror: .asciiz "File I/O error\nError Code:\n"
-    #fs
     separator: .asciiz "\n----------------------\n"
     newline: .asciiz "\n"
     
@@ -19,7 +18,7 @@
 .text
 .globl main
 
-# Open file, read lines, and print them
+#Create new file, then open read file and save descriptor
 main:
     li   $v0, 13       # system call for open file
     la   $a0, filenamewrite     # output file name

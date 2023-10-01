@@ -9,6 +9,8 @@ eg: "/home/noahg/Documents/A3/jet_64_in_ascii_lf.ppm"
 
 nb. The file must be 64 x 64 pixels, have a file size of less than 100kb, and be 'LF' terminated
 
+nb. if converting from normal photo to greyscale, a 'P3' file must be used
+
 direct the 'filenamewrite' variable to the directory which you want your new file to be created along with the file name of the new file
 eg: "/home/$(USER)/Documents/jet_greyscale.ppm"
 

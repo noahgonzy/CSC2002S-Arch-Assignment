@@ -19,6 +19,7 @@
 .text
 .globl main
 
+#Create new file, then open read file and save descriptor
 main:
     #this call creates the file for later writing
     li   $v0, 13       # system call for open file
@@ -64,6 +65,7 @@ main:
     #t5: 3, stores where rgb starts
     #t6: lines counter
 
+#reading in the line (adding the chars to the line variable until a newline char is reached)
 read_loop:
     # Read a line from the file
     li $v0, 14               # Syscall code for read from file
@@ -83,6 +85,7 @@ read_loop:
 
     j read_loop #run this loop again to add onto the line string
 
+#processing counter variables and checking if still storing description
 processing:
     addi $t6, $t6, 1 #add 1 to the line counter
     
@@ -98,12 +101,14 @@ processing:
 
     j linetoint
 
+#converting the P3 line in the file to P2 so the ppm file knows it's now in greyscale
 P3toP2:
     addi $s7, $s7, -2 #go back 2 bytes from the newline character to the number after P
     li $t2, '2'
     sb $t2, writestring($s7) #store the number 2 in that space instead of the 3
     j rs #reset the line space
 
+#change description from '# tre' to '# te2', or '# jet' to '# jt2'
 storenewdescription:
     addi $s7, $s7, -2 #go back 2 bytes and get the last char of the line
     lb $t1, writestring($s7) 
@@ -117,6 +122,7 @@ storenewdescription:
     
     j rs #jump to resetting the 'space' variables
 
+#sets the points where the new values will be written into the write string from
 setstart:
     move $t3, $s6 #sets $t3 to the place where the program needs to start adding to the writestring from, ie, after the decription lines
     addi $t3, $t3, -1 #go back one value so that it getss written right up to the newline vairable
@@ -179,14 +185,18 @@ getnumlen:
     beq $s5, $zero, assignnl #jumps to assign new length function
     j getnumlen
 
+#set up variables for writing new values into the writestring
 assignnl:
     addi $t2, $t2, 1 #increment counter by 1 for storing newline char
+
     move $t4, $t3 #store countdown value into $t4
     add $t3, $t2, $t3 #increment $t3 by the number calculated as $t2, which is the number length
     move $t2, $t3 #store the new number to count down from in $t2 so $t3 remains the main counter, and we count down from $t4 to $t2
+
     sb $s0, writestring($t2) #store the newline character at the end of where the string will go
     j newnumtostr
 
+#write the new number to the writestring until it's written all values
 newnumtostr:
     addi $t2, $t2, -1 #loop down
     beq $t2, $t4, resetspaces #if at the end of the looping down, reset the spaces
@@ -202,12 +212,13 @@ newnumtostr:
 
 #this resets the values stored in the 'line' variable to 0
 rs:
-    sb $zero, line($t7)
+    sb $zero, line($t7) #stores the value of 0 in each byte space of $t7
     addi $t7, $t7, 1
     beq $t7, $t8, read_loop
 
     j rs
 
+#reset the lines incrementor variable, and checks for which description line has been reached, and account for this by running the required function
 resetspaces:
     li $t7, 0 #reset incrementor to reset all values of line variable
     beq $t6, 1, P3toP2 #change P3 to P2 so that the ppm file knows this is greyscale, but only do it if were on the first line
@@ -237,6 +248,7 @@ openforwriting:
 
     j writing
 
+#open the file that needs to be written into
 writing:
     li $v0, 15 #load writing command
     move $a0, $t0 #load file to be written to into descriptor
@@ -246,6 +258,7 @@ writing:
 
     j donewriting 
 
+#close file after writing
 donewriting:
     li $v0, 16               # Syscall code for close file
     move $a0, $t0            # File descriptor to close
